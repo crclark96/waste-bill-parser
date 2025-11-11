@@ -25,6 +25,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [currentConfigName, setCurrentConfigName] = useState<string>('Default');
 
   // Auto-load most recently used configuration on mount
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function Home() {
           });
           // Load the most recently used configuration
           setFields(sortedConfigs[0].fields);
+          setCurrentConfigName(sortedConfigs[0].name);
         }
       } catch (error) {
         console.error('Failed to load saved configurations:', error);
@@ -185,6 +187,8 @@ export default function Home() {
           setFields={setFields}
           isOpen={isConfigOpen}
           onClose={() => setIsConfigOpen(false)}
+          currentConfigName={currentConfigName}
+          setCurrentConfigName={setCurrentConfigName}
         />
 
         {/* Main Content Area */}

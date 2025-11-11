@@ -21,9 +21,11 @@ interface FieldConfigProps {
   setFields: (fields: FieldDefinition[]) => void;
   isOpen: boolean;
   onClose: () => void;
+  currentConfigName: string;
+  setCurrentConfigName: (name: string) => void;
 }
 
-export default function FieldConfig({ fields, setFields, isOpen, onClose }: FieldConfigProps) {
+export default function FieldConfig({ fields, setFields, isOpen, onClose, currentConfigName, setCurrentConfigName }: FieldConfigProps) {
   const [newField, setNewField] = useState<FieldDefinition>({
     name: '',
     description: '',
@@ -116,6 +118,7 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose }: Fiel
 
   const handleLoadConfig = async (config: FieldConfiguration) => {
     setFields(config.fields);
+    setCurrentConfigName(config.name);
     setShowLoadDialog(false);
 
     // Mark this config as recently used
@@ -142,14 +145,19 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose }: Fiel
       >
         <div className="p-6">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-black">Field Configuration</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-black text-2xl"
-            >
-              ×
-            </button>
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xl font-bold text-black">Field Configuration</h2>
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-black text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="text-sm text-gray-600">
+              Current: <span className="font-semibold text-black">{currentConfigName}</span>
+            </div>
           </div>
 
           {/* Action Buttons */}
@@ -238,7 +246,7 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose }: Fiel
           )}
 
           <div className="text-sm text-black mb-4">
-            Configure which fields to extract from the PDF. The AI will attempt to find these
+            Configure which fields to extract from the PDF. The LLM will attempt to find these
             fields in the parsed text.
           </div>
 
