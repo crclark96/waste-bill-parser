@@ -23,6 +23,7 @@ export default function Home() {
   const [extractedData, setExtractedData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -105,7 +106,16 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">PDF Data Extractor</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">PDF Data Extractor</h1>
+          <button
+            onClick={() => setIsConfigOpen(true)}
+            className="bg-purple-600 text-white py-2 px-6 rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
+          >
+            <span>⚙️</span>
+            Configure Fields
+          </button>
+        </div>
 
         {/* File Upload Section */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
@@ -138,29 +148,38 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Field Configuration */}
-        <FieldConfig fields={fields} setFields={setFields} />
+        {/* Field Configuration Popout */}
+        <FieldConfig
+          fields={fields}
+          setFields={setFields}
+          isOpen={isConfigOpen}
+          onClose={() => setIsConfigOpen(false)}
+        />
 
         {/* Main Content Area */}
-        {pdfUrl && (
-          <div className="grid grid-cols-2 gap-6">
-            {/* PDF Viewer */}
+        <div className="grid grid-cols-2 gap-6">
+          {/* PDF Viewer - Always visible when PDF is uploaded */}
+          {pdfUrl ? (
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold mb-4">PDF Preview</h2>
               <PDFViewer pdfUrl={pdfUrl} />
             </div>
-
-            {/* Results Editor */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">Extracted Data</h2>
-              <ResultsEditor
-                data={extractedData}
-                setData={setExtractedData}
-                fields={fields}
-              />
+          ) : (
+            <div className="bg-white rounded-lg shadow p-6 flex items-center justify-center min-h-96">
+              <p className="text-black text-center">Upload a PDF to preview it here</p>
             </div>
+          )}
+
+          {/* Results Editor */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold mb-4">Extracted Data</h2>
+            <ResultsEditor
+              data={extractedData}
+              setData={setExtractedData}
+              fields={fields}
+            />
           </div>
-        )}
+        </div>
       </div>
     </main>
   );
