@@ -12,6 +12,7 @@ export interface FieldConfiguration {
   fields: FieldDefinition[];
   createdAt: number;
   updatedAt: number;
+  lastUsedAt?: number;
 }
 
 interface ConfigDB extends DBSchema {
@@ -23,7 +24,7 @@ interface ConfigDB extends DBSchema {
 }
 
 const DB_NAME = 'pdf-extractor-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbInstance: IDBPDatabase<ConfigDB> | null = null;
 
@@ -33,12 +34,17 @@ async function getDB(): Promise<IDBPDatabase<ConfigDB>> {
   }
 
   dbInstance = await openDB<ConfigDB>(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      const store = db.createObjectStore('configurations', {
-        keyPath: 'id',
-        autoIncrement: true,
-      });
-      store.createIndex('by-name', 'name', { unique: true });
+    upgrade(db, oldVersion, newVersion, transaction) {
+      // Create store if it doesn't exist (version 0 -> 1)
+      if (oldVersion < 1) {
+        const store = db.createObjectStore('configurations', {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        store.createIndex('by-name', 'name', { unique: true });
+      }
+      // Version 1 -> 2: No schema changes needed, just added lastUsedAt field to interface
+      // IndexedDB is schemaless for object properties, so no migration needed
     },
   });
 
@@ -96,4 +102,15 @@ export async function updateConfiguration(config: FieldConfiguration): Promise<v
     ...config,
     updatedAt: Date.now(),
   });
+}
+
+export async function markConfigurationAsUsed(id: number): Promise<void> {
+  const db = await getDB();
+  const config = await db.get('configurations', id);
+  if (config) {
+    await db.put('configurations', {
+      ...config,
+      lastUsedAt: Date.now(),
+    });
+  }
 }

@@ -6,6 +6,7 @@ import {
   getAllConfigurations,
   getConfigurationByName,
   deleteConfiguration,
+  markConfigurationAsUsed,
   FieldConfiguration,
 } from '@/lib/db';
 
@@ -116,6 +117,11 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose }: Fiel
   const handleLoadConfig = async (config: FieldConfiguration) => {
     setFields(config.fields);
     setShowLoadDialog(false);
+
+    // Mark this config as recently used
+    if (config.id) {
+      await markConfigurationAsUsed(config.id);
+    }
   };
 
   const handleDeleteConfig = async (id: number) => {

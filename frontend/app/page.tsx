@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PDFViewer from '@/components/PDFViewer';
 import FieldConfig from '@/components/FieldConfig';
 import ResultsEditor from '@/components/ResultsEditor';
+import { getAllConfigurations } from '@/lib/db';
 
 interface FieldDefinition {
   name: string;
@@ -24,6 +25,30 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+
+  // Auto-load most recently used configuration on mount
+  useEffect(() => {
+    const loadMostRecentConfig = async () => {
+      try {
+        const configs = await getAllConfigurations();
+        if (configs.length > 0) {
+          // Sort by lastUsedAt descending (most recently used first)
+          // If no lastUsedAt, fall back to updatedAt
+          const sortedConfigs = configs.sort((a, b) => {
+            const aTime = a.lastUsedAt || a.updatedAt;
+            const bTime = b.lastUsedAt || b.updatedAt;
+            return bTime - aTime;
+          });
+          // Load the most recently used configuration
+          setFields(sortedConfigs[0].fields);
+        }
+      } catch (error) {
+        console.error('Failed to load saved configurations:', error);
+      }
+    };
+
+    loadMostRecentConfig();
+  }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
