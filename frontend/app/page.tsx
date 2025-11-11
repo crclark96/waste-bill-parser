@@ -23,6 +23,7 @@ export default function Home() {
   ]);
   const [extractedData, setExtractedData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [currentConfigName, setCurrentConfigName] = useState<string>('Default');
@@ -73,12 +74,14 @@ export default function Home() {
 
     setLoading(true);
     setError('');
+    setLoadingStep('Uploading PDF...');
 
     try {
       // Step 1: Parse PDF to text
       const formData = new FormData();
       formData.append('file', pdfFile);
 
+      setLoadingStep('Parsing PDF to text...');
       const parseResponse = await fetch('http://localhost:5000/api/parse', {
         method: 'POST',
         body: formData,
@@ -93,6 +96,8 @@ export default function Home() {
       setParsedText(text);
 
       // Step 2: Extract structured data
+      setLoadingStep('Extracting structured data...');
+
       // Convert fields to JSON schema format
       const schema = {
         type: 'object',
@@ -129,10 +134,12 @@ export default function Home() {
 
       console.log('Parsed data to display:', parsedData);
       setExtractedData(parsedData);
+      setLoadingStep('Complete!');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
+      setLoadingStep('');
     }
   };
 
@@ -208,11 +215,18 @@ export default function Home() {
           {/* Results Editor */}
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4">Extracted Data</h2>
-            <ResultsEditor
-              data={extractedData}
-              setData={setExtractedData}
-              fields={fields}
-            />
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-4">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
+                <div className="text-xl font-semibold text-black">{loadingStep}</div>
+              </div>
+            ) : (
+              <ResultsEditor
+                data={extractedData}
+                setData={setExtractedData}
+                fields={fields}
+              />
+            )}
           </div>
         </div>
       </div>
