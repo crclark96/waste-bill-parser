@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   saveConfiguration,
   getAllConfigurations,
@@ -32,10 +32,32 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose }: Fiel
   const [savedConfigs, setSavedConfigs] = useState<FieldConfiguration[]>([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showLoadDialog, setShowLoadDialog] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadConfigurations();
   }, []);
+
+  // Close panel when clicking outside
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    // Add a small delay to avoid closing immediately when opening
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onClose]);
 
   const loadConfigurations = async () => {
     const configs = await getAllConfigurations();
@@ -108,7 +130,10 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose }: Fiel
   return (
     <>
       {/* Side Panel */}
-      <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 overflow-y-auto border-l-2 border-gray-300">
+      <div
+        ref={panelRef}
+        className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 overflow-y-auto border-l-2 border-gray-300"
+      >
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
