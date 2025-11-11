@@ -35,9 +35,12 @@ export default function Home() {
   const [selectedFileIndex, setSelectedFileIndex] = useState<number | null>(null);
   const [results, setResults] = useState<PDFResult[]>([]);
   const [fields, setFields] = useState<FieldDefinition[]>([
-    { name: 'invoice_number', description: 'Invoice or receipt number', type: 'string' },
-    { name: 'date', description: 'Transaction date', type: 'string' },
-    { name: 'total', description: 'Total amount', type: 'number' },
+    { name: 'start date', description: 'Start date of reporting period', type: 'string' },
+    { name: 'end date', description: 'End date of reporting period', type: 'string' },
+    { name: 'total', description: 'Total volume', type: 'number' },
+    { name: 'recycle', description: 'Total volume of all recycling entries', type: 'number' },
+    { name: 'compost', description: 'Total volume of all compost entries', type: 'number' },
+    { name: 'trash', description: 'Total volume of all trash entries', type: 'number' },
   ]);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState<string>('');
