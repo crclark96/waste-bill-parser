@@ -1,10 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import PDFViewer from '@/components/PDFViewer';
+import dynamic from 'next/dynamic';
 import FieldConfig from '@/components/FieldConfig';
 import ResultsEditor from '@/components/ResultsEditor';
 import { getAllConfigurations } from '@/lib/db';
+
+const PDFViewer = dynamic(() => import('@/components/PDFViewer'), {
+  ssr: false,
+  loading: () => <div className="text-black text-center p-8">Loading PDF viewer...</div>,
+});
 
 interface FieldDefinition {
   name: string;
