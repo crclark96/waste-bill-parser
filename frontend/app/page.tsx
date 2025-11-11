@@ -24,6 +24,9 @@ interface PDFResult {
   extractedData: Record<string, any>;
   error?: string;
   status?: 'pending' | 'processing' | 'completed' | 'error';
+  parseStartTime?: number;
+  parseEndTime?: number;
+  parseDuration?: number;
 }
 
 export default function Home() {
@@ -124,6 +127,7 @@ export default function Home() {
 
   const processSingleFile = async (fileIndex: number) => {
     const currentFile = pdfFiles[fileIndex];
+    const startTime = Date.now();
 
     // Update status to processing
     setResults(prev => {
@@ -131,6 +135,7 @@ export default function Home() {
       updated[fileIndex] = {
         ...updated[fileIndex],
         status: 'processing',
+        parseStartTime: startTime,
       };
       return updated;
     });
@@ -186,6 +191,9 @@ export default function Home() {
       // Landing AI returns data in the 'extraction' field
       const parsedData = extractData.extraction || extractData.data || extractData.fields || extractData;
 
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
       // Update the result for this file
       setResults(prev => {
         const updated = [...prev];
@@ -195,6 +203,8 @@ export default function Home() {
           extractedData: parsedData,
           status: 'completed',
           error: undefined,
+          parseEndTime: endTime,
+          parseDuration: duration,
         };
         return updated;
       });
@@ -256,18 +266,89 @@ export default function Home() {
     setProcessingAll(false);
   };
 
+  const handleExportToCSV = () => {
+    // Filter results that have extracted data
+    const completedResults = results.filter(
+      result => result.status === 'completed' && Object.keys(result.extractedData).length > 0
+    );
+
+    if (completedResults.length === 0) {
+      setError('No completed extractions to export');
+      return;
+    }
+
+    // Helper function to escape CSV values
+    const escapeCSV = (value: string) => {
+      if (value.includes(',') || value.includes('"') || value.includes('\n') || value.includes(' ')) {
+        return `"${value.replace(/"/g, '""')}"`;
+      }
+      return value;
+    };
+
+    // Build CSV headers: filename, file_size, parsed_at, parse_duration_ms, ...field names
+    const headers = [
+      'filename',
+      'file_size_bytes',
+      'parsed_at',
+      'parse_duration_ms',
+      ...fields.map(f => escapeCSV(f.name))
+    ];
+
+    // Build CSV rows
+    const rows = completedResults.map(result => {
+      const row: string[] = [
+        escapeCSV(result.file.name),
+        result.file.size.toString(),
+        result.parseEndTime ? new Date(result.parseEndTime).toISOString() : '',
+        result.parseDuration?.toString() || '',
+        ...fields.map(field => {
+          const value = result.extractedData[field.name];
+          // Escape values that contain commas or quotes
+          if (value === undefined || value === null) return '';
+          const stringValue = String(value);
+          return escapeCSV(stringValue);
+        })
+      ];
+      return row.join(',');
+    });
+
+    // Combine headers and rows
+    const csv = [headers.join(','), ...rows].join('\n');
+
+    // Create blob and download
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `pdf_extractions_${Date.now()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <main className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-900">PDF Data Extractor</h1>
-          <button
-            onClick={() => setIsConfigOpen(true)}
-            className="bg-purple-600 text-white py-2 px-6 rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
-          >
-            <span>⚙️</span>
-            Configure Fields
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleExportToCSV}
+              disabled={results.filter(r => r.status === 'completed').length === 0}
+              className="bg-green-600 text-white py-2 px-6 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition flex items-center gap-2"
+            >
+              <span>📊</span>
+              Export to CSV
+            </button>
+            <button
+              onClick={() => setIsConfigOpen(true)}
+              className="bg-purple-600 text-white py-2 px-6 rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
+            >
+              <span>⚙️</span>
+              Configure Fields
+            </button>
+          </div>
         </div>
 
         {/* Error Display */}
