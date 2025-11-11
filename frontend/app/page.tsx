@@ -22,6 +22,7 @@ interface PDFResult {
   url: string;
   parsedText: string;
   extractedData: Record<string, any>;
+  originalExtractedData?: Record<string, any>;
   error?: string;
   status?: 'pending' | 'processing' | 'completed' | 'error';
   parseStartTime?: number;
@@ -201,6 +202,7 @@ export default function Home() {
           ...updated[fileIndex],
           parsedText: text,
           extractedData: parsedData,
+          originalExtractedData: parsedData, // Store original for undo functionality
           status: 'completed',
           error: undefined,
           parseEndTime: endTime,
@@ -264,6 +266,27 @@ export default function Home() {
     await Promise.all(promises);
 
     setProcessingAll(false);
+  };
+
+  const handleResetData = () => {
+    if (selectedFileIndex === null || !results[selectedFileIndex]) {
+      return;
+    }
+
+    const result = results[selectedFileIndex];
+    if (!result.originalExtractedData) {
+      return;
+    }
+
+    // Reset to original data
+    setResults(prev => {
+      const updated = [...prev];
+      updated[selectedFileIndex] = {
+        ...updated[selectedFileIndex],
+        extractedData: { ...result.originalExtractedData },
+      };
+      return updated;
+    });
   };
 
   const handleExportToCSV = () => {
@@ -498,6 +521,8 @@ export default function Home() {
                   });
                 }}
                 fields={fields}
+                originalData={results[selectedFileIndex].originalExtractedData}
+                onReset={handleResetData}
               />
             ) : (
               <div className="text-black text-center py-8">

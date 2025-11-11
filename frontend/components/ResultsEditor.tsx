@@ -12,19 +12,16 @@ interface ResultsEditorProps {
   data: Record<string, any>;
   setData: (data: Record<string, any>) => void;
   fields: FieldDefinition[];
+  originalData?: Record<string, any>;
+  onReset?: () => void;
 }
 
-export default function ResultsEditor({ data, setData, fields }: ResultsEditorProps) {
+export default function ResultsEditor({ data, setData, fields, originalData, onReset }: ResultsEditorProps) {
   const [copied, setCopied] = useState(false);
   const [editingCell, setEditingCell] = useState<string | null>(null);
-  const [originalData, setOriginalData] = useState<Record<string, any>>({});
 
-  // Store original parsed data when it first arrives
-  useEffect(() => {
-    if (Object.keys(data).length > 0 && Object.keys(originalData).length === 0) {
-      setOriginalData({ ...data });
-    }
-  }, [data, originalData]);
+  // Check if data has been modified
+  const isModified = originalData && JSON.stringify(data) !== JSON.stringify(originalData);
 
   const handleFieldChange = (fieldName: string, value: any) => {
     setData({
@@ -114,6 +111,16 @@ export default function ResultsEditor({ data, setData, fields }: ResultsEditorPr
         >
           {copied ? 'Copied!' : 'Copy to Clipboard'}
         </button>
+        {onReset && (
+          <button
+            onClick={onReset}
+            disabled={!isModified}
+            className="bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+            title="Reset to original extracted values"
+          >
+            Reset
+          </button>
+        )}
       </div>
 
       {/* JSON Preview (Collapsible) */}
