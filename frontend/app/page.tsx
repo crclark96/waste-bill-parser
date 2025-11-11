@@ -42,6 +42,8 @@ export default function Home() {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [currentConfigName, setCurrentConfigName] = useState<string>('Default');
   const [isDragging, setIsDragging] = useState(false);
+  const [scale, setScale] = useState<number>(1.0);
+  const [pageNumber, setPageNumber] = useState<number>(1);
 
   // Auto-load most recently used configuration on mount
   useEffect(() => {
@@ -372,7 +374,13 @@ export default function Home() {
 
             {/* PDF Preview or Drop Zone */}
             {selectedFileIndex !== null && results[selectedFileIndex] ? (
-              <PDFViewer pdfUrl={results[selectedFileIndex].url} />
+              <PDFViewer
+                pdfUrl={results[selectedFileIndex].url}
+                scale={scale}
+                setScale={setScale}
+                pageNumber={pageNumber}
+                setPageNumber={setPageNumber}
+              />
             ) : (
               <div
                 className={`border-2 border-dashed rounded-lg flex items-center justify-center min-h-96 transition ${

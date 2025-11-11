@@ -12,11 +12,14 @@ if (typeof window !== 'undefined') {
 
 interface PDFViewerProps {
   pdfUrl: string;
+  scale: number;
+  setScale: (scale: number) => void;
+  pageNumber: number;
+  setPageNumber: (pageNumber: number) => void;
 }
 
-export default function PDFViewer({ pdfUrl }: PDFViewerProps) {
+export default function PDFViewer({ pdfUrl, scale, setScale, pageNumber, setPageNumber }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>(0);
-  const [pageNumber, setPageNumber] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
 
@@ -32,12 +35,48 @@ export default function PDFViewer({ pdfUrl }: PDFViewerProps) {
     console.error('PDF load error:', error);
   }
 
+  const zoomIn = () => setScale(prev => Math.min(prev + 0.25, 3.0));
+  const zoomOut = () => setScale(prev => Math.max(prev - 0.25, 0.5));
+  const resetZoom = () => setScale(1.0);
+
   return (
     <div className="flex flex-col items-center">
       {loading && <div className="text-black">Loading PDF...</div>}
       {error && <div className="text-red-600">{error}</div>}
 
-      <div className="border border-gray-300 rounded overflow-hidden mb-4 max-h-[600px] overflow-y-auto">
+      {/* Zoom Controls */}
+      {numPages > 0 && (
+        <div className="flex items-center gap-2 mb-3">
+          <button
+            onClick={zoomOut}
+            disabled={scale <= 0.5}
+            className="px-3 py-1 bg-gray-600 text-white rounded text-sm disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-gray-700"
+            title="Zoom Out"
+          >
+            −
+          </button>
+          <span className="text-xs text-black min-w-16 text-center">
+            {Math.round(scale * 100)}%
+          </span>
+          <button
+            onClick={zoomIn}
+            disabled={scale >= 3.0}
+            className="px-3 py-1 bg-gray-600 text-white rounded text-sm disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-gray-700"
+            title="Zoom In"
+          >
+            +
+          </button>
+          <button
+            onClick={resetZoom}
+            className="px-3 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700"
+            title="Reset Zoom"
+          >
+            Reset
+          </button>
+        </div>
+      )}
+
+      <div className="border border-gray-300 rounded overflow-auto mb-4 max-h-[600px] w-full">
         <Document
           file={pdfUrl}
           onLoadSuccess={onDocumentLoadSuccess}
@@ -46,7 +85,7 @@ export default function PDFViewer({ pdfUrl }: PDFViewerProps) {
         >
           <Page
             pageNumber={pageNumber}
-            width={500}
+            scale={scale}
             renderTextLayer={true}
             renderAnnotationLayer={true}
           />
