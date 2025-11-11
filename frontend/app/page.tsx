@@ -95,7 +95,13 @@ export default function Home() {
       }
 
       const extractData = await extractResponse.json();
-      setExtractedData(extractData.data || extractData);
+      console.log('Extract API Response:', extractData);
+
+      // Landing AI returns data in the 'extraction' field
+      const parsedData = extractData.extraction || extractData.data || extractData.fields || extractData;
+
+      console.log('Parsed data to display:', parsedData);
+      setExtractedData(parsedData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface FieldDefinition {
   name: string;
@@ -16,6 +16,15 @@ interface ResultsEditorProps {
 
 export default function ResultsEditor({ data, setData, fields }: ResultsEditorProps) {
   const [copied, setCopied] = useState(false);
+  const [editingCell, setEditingCell] = useState<string | null>(null);
+  const [originalData, setOriginalData] = useState<Record<string, any>>({});
+
+  // Store original parsed data when it first arrives
+  useEffect(() => {
+    if (Object.keys(data).length > 0 && Object.keys(originalData).length === 0) {
+      setOriginalData({ ...data });
+    }
+  }, [data, originalData]);
 
   const handleFieldChange = (fieldName: string, value: any) => {
     setData({
@@ -45,37 +54,77 @@ export default function ResultsEditor({ data, setData, fields }: ResultsEditorPr
 
   return (
     <div className="space-y-4">
-      {fields.map((field) => (
-        <div key={field.name} className="space-y-2">
-          <label className="block text-sm font-medium text-black">
-            {field.name}
-            <span className="text-black text-xs ml-2">({field.description})</span>
-          </label>
-          <input
-            type={field.type === 'number' ? 'number' : 'text'}
-            value={data[field.name] || ''}
-            onChange={(e) => handleFieldChange(field.name, e.target.value)}
-            className="w-full px-3 py-2 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder={`Enter ${field.name}`}
-          />
-        </div>
-      ))}
+      {/* Editable Table */}
+      <div className="border border-gray-300 rounded-lg overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-black border-b border-gray-300 w-2/5">
+                Field
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-black border-b border-gray-300 w-3/5">
+                Value
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {fields.map((field, index) => (
+              <tr key={field.name} className="hover:bg-gray-50">
+                <td className="px-4 py-3 text-sm font-medium text-black border-r border-gray-200">
+                  <div>
+                    <div className="font-semibold">{field.name}</div>
+                    <div className="text-xs text-gray-600">{field.description}</div>
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  {editingCell === field.name ? (
+                    <input
+                      type={field.type === 'number' ? 'number' : 'text'}
+                      value={data[field.name] || ''}
+                      onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                      onBlur={() => setEditingCell(null)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          setEditingCell(null);
+                        }
+                      }}
+                      autoFocus
+                      className="w-full px-2 py-1 text-sm text-black border border-blue-500 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  ) : (
+                    <div
+                      onClick={() => setEditingCell(field.name)}
+                      className="cursor-text text-sm text-black min-h-6 px-2 py-1 hover:bg-gray-100 rounded"
+                    >
+                      {data[field.name] || <span className="text-gray-400 italic">Click to edit</span>}
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      <div className="pt-4 border-t border-gray-200">
+      {/* Action Buttons */}
+      <div className="flex gap-2">
         <button
           onClick={handleCopyToClipboard}
-          className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition"
+          className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition"
         >
           {copied ? 'Copied!' : 'Copy to Clipboard'}
         </button>
       </div>
 
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h3 className="text-sm font-semibold text-black mb-2">JSON Preview</h3>
-        <pre className="text-xs text-black bg-white p-3 rounded border border-gray-200 overflow-x-auto">
+      {/* JSON Preview (Collapsible) */}
+      <details className="bg-gray-50 p-4 rounded-lg">
+        <summary className="text-sm font-semibold text-black cursor-pointer">
+          JSON Preview
+        </summary>
+        <pre className="text-xs text-black bg-white p-3 rounded border border-gray-200 overflow-x-auto mt-2">
           {JSON.stringify(data, null, 2)}
         </pre>
-      </div>
+      </details>
     </div>
   );
 }
