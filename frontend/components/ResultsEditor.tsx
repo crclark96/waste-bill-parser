@@ -43,7 +43,7 @@ export default function ResultsEditor({ data, setData, fields, originalData, onR
 
   if (Object.keys(data).length === 0) {
     return (
-      <div className="text-black text-center py-8">
+      <div className="text-brand-gray text-center py-8">
         No data extracted yet. Upload a PDF and click &quot;Parse & Extract Data&quot; to begin.
       </div>
     );
@@ -52,25 +52,25 @@ export default function ResultsEditor({ data, setData, fields, originalData, onR
   return (
     <div className="space-y-4">
       {/* Editable Table */}
-      <div className="border border-gray-300 rounded-lg overflow-hidden">
+      <div className="border border-brand-lighter-gray rounded-lg overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-100">
+          <thead className="bg-brand-lightest-gray">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-black border-b border-gray-300 w-2/5">
+              <th className="px-4 py-3 text-left text-sm font-semibold text-brand-navy border-b border-brand-lighter-gray w-2/5">
                 Field
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-black border-b border-gray-300 w-3/5">
+              <th className="px-4 py-3 text-left text-sm font-semibold text-brand-navy border-b border-brand-lighter-gray w-3/5">
                 Value
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-brand-lighter-gray">
             {fields.map((field, index) => (
-              <tr key={field.name} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm font-medium text-black border-r border-gray-200">
+              <tr key={field.name} className="hover:bg-brand-lightest-gray">
+                <td className="px-4 py-3 text-sm font-medium text-brand-dark-gray border-r border-brand-lighter-gray">
                   <div>
                     <div className="font-semibold">{field.name}</div>
-                    <div className="text-xs text-gray-600">{field.description}</div>
+                    <div className="text-xs text-brand-gray">{field.description}</div>
                   </div>
                 </td>
                 <td className="px-4 py-3">
@@ -86,14 +86,14 @@ export default function ResultsEditor({ data, setData, fields, originalData, onR
                         }
                       }}
                       autoFocus
-                      className="w-full px-2 py-1 text-sm text-black border border-blue-500 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-2 py-1 text-sm text-brand-dark-gray border border-brand-light-blue rounded focus:outline-none focus:ring-2 focus:ring-brand-light-blue"
                     />
                   ) : (
                     <div
                       onClick={() => setEditingCell(field.name)}
-                      className="cursor-text text-sm text-black min-h-6 px-2 py-1 hover:bg-gray-100 rounded"
+                      className="cursor-text text-sm text-brand-dark-gray min-h-6 px-2 py-1 hover:bg-brand-lightest-gray rounded"
                     >
-                      {data[field.name] || <span className="text-gray-400 italic">Click to edit</span>}
+                      {data[field.name] || <span className="text-brand-gray italic">Click to edit</span>}
                     </div>
                   )}
                 </td>
@@ -107,7 +107,7 @@ export default function ResultsEditor({ data, setData, fields, originalData, onR
       <div className="flex gap-2">
         <button
           onClick={handleCopyToClipboard}
-          className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition"
+          className="flex-1 bg-brand-blue text-white py-2 px-4 rounded-lg hover:opacity-90 transition"
         >
           {copied ? 'Copied!' : 'Copy to Clipboard'}
         </button>
@@ -115,7 +115,7 @@ export default function ResultsEditor({ data, setData, fields, originalData, onR
           <button
             onClick={onReset}
             disabled={!isModified}
-            className="bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+            className="bg-brand-orange text-white py-2 px-4 rounded-lg hover:opacity-90 disabled:bg-brand-light-gray disabled:cursor-not-allowed transition"
             title="Reset to original extracted values"
           >
             Reset
@@ -124,11 +124,11 @@ export default function ResultsEditor({ data, setData, fields, originalData, onR
       </div>
 
       {/* JSON Preview (Collapsible) */}
-      <details className="bg-gray-50 p-4 rounded-lg">
-        <summary className="text-sm font-semibold text-black cursor-pointer">
+      <details className="bg-brand-lightest-gray p-4 rounded-lg">
+        <summary className="text-sm font-semibold text-brand-navy cursor-pointer">
           JSON Preview
         </summary>
-        <pre className="text-xs text-black bg-white p-3 rounded border border-gray-200 overflow-x-auto mt-2">
+        <pre className="text-xs text-brand-dark-gray bg-white p-3 rounded border border-brand-lighter-gray overflow-x-auto mt-2">
           {JSON.stringify(data, null, 2)}
         </pre>
       </details>

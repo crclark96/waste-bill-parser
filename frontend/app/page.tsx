@@ -375,22 +375,22 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
+    <main className="min-h-screen bg-brand-lightest-gray p-8">
+      <div className="max-w-[1600px] mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Waste Bill Parser</h1>
+          <h1 className="text-3xl font-bold text-brand-navy">Waste Bill Parser</h1>
           <div className="flex gap-3">
             <button
               onClick={handleExportToCSV}
               disabled={results.filter(r => r.status === 'completed').length === 0}
-              className="bg-green-600 text-white py-2 px-6 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition flex items-center gap-2"
+              className="bg-brand-orange text-white py-2 px-6 rounded-lg hover:opacity-90 disabled:bg-brand-light-gray disabled:cursor-not-allowed transition flex items-center gap-2"
             >
               <span>📊</span>
               Export to CSV
             </button>
             <button
               onClick={() => setIsConfigOpen(true)}
-              className="bg-purple-600 text-white py-2 px-6 rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
+              className="bg-brand-navy text-white py-2 px-6 rounded-lg hover:opacity-90 transition flex items-center gap-2"
             >
               <span>⚙️</span>
               Waste Streams
@@ -411,7 +411,7 @@ export default function Home() {
             <button
               onClick={handleParse}
               disabled={selectedFileIndex === null || loading || processingAll}
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+              className="flex-1 bg-brand-light-blue text-white py-2 px-4 rounded-lg hover:opacity-90 disabled:bg-brand-light-gray disabled:cursor-not-allowed transition"
             >
               {loading ? 'Processing...' : `Parse Selected${pdfFiles.length > 0 && selectedFileIndex !== null ? ` (${pdfFiles[selectedFileIndex].name})` : ''}`}
             </button>
@@ -419,7 +419,7 @@ export default function Home() {
               <button
                 onClick={handleProcessAll}
                 disabled={processingAll || loading}
-                className="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+                className="bg-brand-blue text-white py-2 px-4 rounded-lg hover:opacity-90 disabled:bg-brand-light-gray disabled:cursor-not-allowed transition"
               >
                 {processingAll ? 'Processing All...' : 'Process All'}
               </button>
@@ -439,18 +439,18 @@ export default function Home() {
           onApiKeyChange={setApiKey}
         />
 
-        {/* Main Content Area */}
-        <div className="grid grid-cols-2 gap-6">
-          {/* PDF Viewer with File Upload */}
+        {/* Main Content Area - 2/3 PDF, 1/3 Extracted Data */}
+        <div className="grid grid-cols-3 gap-6">
+          {/* PDF Viewer - 2/3 width */}
           <div
-            className="bg-white rounded-lg shadow p-6"
+            className="col-span-2 bg-white rounded-lg shadow p-6"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">PDF Preview</h2>
-              <label className="bg-blue-600 text-white py-1 px-3 rounded text-sm cursor-pointer hover:bg-blue-700 transition">
+              <h2 className="text-xl font-semibold text-brand-navy">PDF Preview</h2>
+              <label className="bg-brand-light-blue text-white py-1 px-3 rounded text-sm cursor-pointer hover:opacity-90 transition">
                 + Add PDFs
                 <input
                   type="file"
@@ -464,7 +464,7 @@ export default function Home() {
 
             {/* File List */}
             {pdfFiles.length > 0 && (
-              <div className="border border-gray-300 rounded-lg overflow-hidden mb-4">
+              <div className="border border-brand-lighter-gray rounded-lg overflow-hidden mb-4">
                 <div className="max-h-32 overflow-y-auto">
                   {pdfFiles.map((file, index) => {
                     const status = results[index]?.status;
@@ -473,27 +473,27 @@ export default function Home() {
 
                     if (status === 'processing') {
                       statusIcon = '⟳';
-                      statusColor = 'text-blue-600 animate-spin';
+                      statusColor = 'text-brand-light-blue animate-spin';
                     } else if (status === 'completed') {
                       statusIcon = '✓';
-                      statusColor = 'text-green-600';
+                      statusColor = 'text-brand-orange';
                     } else if (status === 'error') {
                       statusIcon = '✗';
                       statusColor = 'text-red-600';
                     } else {
                       statusIcon = '○';
-                      statusColor = 'text-gray-400';
+                      statusColor = 'text-brand-gray';
                     }
 
                     return (
                       <div
                         key={index}
                         onClick={() => setSelectedFileIndex(index)}
-                        className={`px-3 py-2 cursor-pointer border-b border-gray-200 last:border-b-0 flex items-center justify-between ${
-                          selectedFileIndex === index ? 'bg-blue-50 border-l-4 border-l-blue-600' : 'hover:bg-gray-50'
+                        className={`px-3 py-2 cursor-pointer border-b border-brand-lighter-gray last:border-b-0 flex items-center justify-between ${
+                          selectedFileIndex === index ? 'bg-blue-50 border-l-4 border-l-brand-light-blue' : 'hover:bg-brand-lightest-gray'
                         }`}
                       >
-                        <span className="text-xs text-black truncate flex-1">{file.name}</span>
+                        <span className="text-xs text-brand-dark-gray truncate flex-1">{file.name}</span>
                         <span className={`text-sm ml-2 ${statusColor}`}>{statusIcon}</span>
                       </div>
                     );
@@ -514,24 +514,24 @@ export default function Home() {
             ) : (
               <div
                 className={`border-2 border-dashed rounded-lg flex items-center justify-center min-h-96 transition ${
-                  isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50'
+                  isDragging ? 'border-brand-light-blue bg-blue-50' : 'border-brand-lighter-gray bg-brand-lightest-gray'
                 }`}
               >
                 <div className="text-center p-8">
-                  <p className="text-black text-lg mb-2">Drop PDF files here</p>
-                  <p className="text-gray-600 text-sm">or click &quot;+ Add PDFs&quot; above</p>
+                  <p className="text-brand-dark-gray text-lg mb-2">Drop PDF files here</p>
+                  <p className="text-brand-gray text-sm">or click &quot;+ Add PDFs&quot; above</p>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Results Editor */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Extracted Data</h2>
+          {/* Extracted Data - 1/3 width */}
+          <div className="col-span-1 bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold text-brand-navy mb-4">Extracted Data</h2>
             {loading ? (
               <div className="flex flex-col items-center justify-center py-16 gap-4">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
-                <div className="text-xl font-semibold text-black">{loadingStep}</div>
+                <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-brand-light-blue"></div>
+                <div className="text-xl font-semibold text-brand-dark-gray">{loadingStep}</div>
               </div>
             ) : selectedFileIndex !== null && results[selectedFileIndex] ? (
               <ResultsEditor
@@ -551,7 +551,7 @@ export default function Home() {
                 onReset={handleResetData}
               />
             ) : (
-              <div className="text-black text-center py-8">
+              <div className="text-brand-gray text-center py-8">
                 No data extracted yet. Upload a PDF and click &quot;Parse & Extract Data&quot; to begin.
               </div>
             )}
