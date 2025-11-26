@@ -51,8 +51,9 @@ export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
   const [scale, setScale] = useState<number>(1.0);
   const [pageNumber, setPageNumber] = useState<number>(1);
+  const [apiKey, setApiKey] = useState<string>('');
 
-  // Auto-load most recently used configuration on mount
+  // Auto-load most recently used configuration and API key on mount
   useEffect(() => {
     const loadMostRecentConfig = async () => {
       try {
@@ -74,7 +75,24 @@ export default function Home() {
       }
     };
 
+    const loadApiKey = () => {
+      const getCookie = (name: string): string => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) {
+          return parts.pop()?.split(';').shift() || '';
+        }
+        return '';
+      };
+
+      const savedKey = getCookie('landing_ai_api_key');
+      if (savedKey) {
+        setApiKey(savedKey);
+      }
+    };
+
     loadMostRecentConfig();
+    loadApiKey();
   }, []);
 
   const addFiles = (files: File[]) => {
@@ -130,6 +148,10 @@ export default function Home() {
   };
 
   const processSingleFile = async (fileIndex: number) => {
+    if (!apiKey) {
+      throw new Error('Please set your Landing AI API key first');
+    }
+
     const currentFile = pdfFiles[fileIndex];
     const startTime = Date.now();
 
@@ -145,23 +167,29 @@ export default function Home() {
     });
 
     try {
-      // Step 1: Parse PDF to text
+      // Step 1: Parse PDF to text using Landing AI
       const formData = new FormData();
-      formData.append('file', currentFile);
+      formData.append('document', currentFile);
+      formData.append('model', 'dpt-2-latest');
 
-      const parseResponse = await fetch('http://localhost:5000/api/parse', {
+      const parseResponse = await fetch('/api/parse', {
         method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+        },
         body: formData,
       });
 
       if (!parseResponse.ok) {
-        throw new Error('Failed to parse PDF');
+        const errorData = await parseResponse.json().catch(() => ({}));
+        const errorMessage = errorData.error?.message || errorData.message || `Parse failed with status ${parseResponse.status}`;
+        throw new Error(errorMessage);
       }
 
       const parseData = await parseResponse.json();
-      const text = parseData.text || parseData.content || JSON.stringify(parseData);
+      const text = parseData.markdown || parseData.text || parseData.content || JSON.stringify(parseData);
 
-      // Step 2: Extract structured data
+      // Step 2: Extract structured data using Landing AI
       // Convert fields to JSON schema format
       const schema = {
         type: 'object',
@@ -175,19 +203,23 @@ export default function Home() {
         required: fields.map(f => f.name),
       };
 
-      const extractResponse = await fetch('http://localhost:5000/api/extract', {
+      const extractResponse = await fetch('/api/extract', {
         method: 'POST',
         headers: {
+          'x-api-key': apiKey,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          model: 'extract-latest',
           markdown: text,
           schema: schema,
         }),
       });
 
       if (!extractResponse.ok) {
-        throw new Error('Failed to extract data');
+        const errorData = await extractResponse.json().catch(() => ({}));
+        const errorMessage = errorData.error?.message || errorData.message || `Extract failed with status ${extractResponse.status}`;
+        throw new Error(errorMessage);
       }
 
       const extractData = await extractResponse.json();
@@ -414,6 +446,8 @@ export default function Home() {
           onClose={() => setIsConfigOpen(false)}
           currentConfigName={currentConfigName}
           setCurrentConfigName={setCurrentConfigName}
+          apiKey={apiKey}
+          onApiKeyChange={setApiKey}
         />
 
         {/* Main Content Area */}
