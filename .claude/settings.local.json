@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "WebFetch(domain:docs.landing.ai)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

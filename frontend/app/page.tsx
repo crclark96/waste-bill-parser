@@ -30,17 +30,21 @@ interface PDFResult {
   parseDuration?: number;
 }
 
+// Hardcoded fields that are always extracted
+const HARDCODED_FIELDS: FieldDefinition[] = [
+  { name: 'start date', description: 'Start date of reporting period', type: 'string' },
+  { name: 'end date', description: 'End date of reporting period', type: 'string' },
+  { name: 'total', description: 'Total volume', type: 'number' },
+];
+
 export default function Home() {
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
   const [selectedFileIndex, setSelectedFileIndex] = useState<number | null>(null);
   const [results, setResults] = useState<PDFResult[]>([]);
   const [fields, setFields] = useState<FieldDefinition[]>([
-    { name: 'start date', description: 'Start date of reporting period', type: 'string' },
-    { name: 'end date', description: 'End date of reporting period', type: 'string' },
-    { name: 'total', description: 'Total volume', type: 'number' },
-    { name: 'recycle', description: 'Total volume of all recycling entries', type: 'number' },
-    { name: 'compost', description: 'Total volume of all compost entries', type: 'number' },
-    { name: 'trash', description: 'Total volume of all trash entries', type: 'number' },
+    { name: 'recycle', description: 'Total volume of all recycling streams', type: 'number' },
+    { name: 'compost', description: 'Total volume of all compost streams', type: 'number' },
+    { name: 'trash', description: 'Total volume of all trash streams', type: 'number' },
   ]);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState<string>('');
@@ -343,13 +347,30 @@ export default function Home() {
       return value;
     };
 
-    // Build CSV headers: filename, file_size, parsed_at, parse_duration_ms, ...field names
+    // Get all unique field names from extracted data across all results
+    const allFieldNames = new Set<string>();
+    completedResults.forEach(result => {
+      Object.keys(result.extractedData).forEach(key => allFieldNames.add(key));
+    });
+
+    // Sort fields: hardcoded fields first, then alphabetically
+    const hardcodedFieldNames = HARDCODED_FIELDS.map(f => f.name);
+    const sortedFieldNames = Array.from(allFieldNames).sort((a, b) => {
+      const aIsHardcoded = hardcodedFieldNames.includes(a);
+      const bIsHardcoded = hardcodedFieldNames.includes(b);
+
+      if (aIsHardcoded && !bIsHardcoded) return -1;
+      if (!aIsHardcoded && bIsHardcoded) return 1;
+      return a.localeCompare(b);
+    });
+
+    // Build CSV headers: filename, file_size, parsed_at, parse_duration_ms, all extracted fields
     const headers = [
       'filename',
       'file_size_bytes',
       'parsed_at',
       'parse_duration_ms',
-      ...fields.map(f => escapeCSV(f.name))
+      ...sortedFieldNames.map(f => escapeCSV(f))
     ];
 
     // Build CSV rows
@@ -359,9 +380,9 @@ export default function Home() {
         result.file.size.toString(),
         result.parseEndTime ? new Date(result.parseEndTime).toISOString() : '',
         result.parseDuration?.toString() || '',
-        ...fields.map(field => {
-          const value = result.extractedData[field.name];
-          // Escape values that contain commas or quotes
+        // Add all extracted fields in the same order as headers
+        ...sortedFieldNames.map(fieldName => {
+          const value = result.extractedData[fieldName];
           if (value === undefined || value === null) return '';
           const stringValue = String(value);
           return escapeCSV(stringValue);
@@ -389,7 +410,7 @@ export default function Home() {
     <main className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">PDF Data Extractor</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Waste Bill Parser</h1>
           <div className="flex gap-3">
             <button
               onClick={handleExportToCSV}
@@ -404,7 +425,7 @@ export default function Home() {
               className="bg-purple-600 text-white py-2 px-6 rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
             >
               <span>⚙️</span>
-              Configure Fields
+              Waste Streams
             </button>
           </div>
         </div>
@@ -438,7 +459,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Field Configuration Popout */}
+        {/* Waste Streams Configuration Popout */}
         <FieldConfig
           fields={fields}
           setFields={setFields}
@@ -557,7 +578,7 @@ export default function Home() {
                     return updated;
                   });
                 }}
-                fields={fields}
+                fields={[...HARDCODED_FIELDS, ...fields]}
                 originalData={results[selectedFileIndex].originalExtractedData}
                 onReset={handleResetData}
               />

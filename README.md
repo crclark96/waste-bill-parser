@@ -5,26 +5,27 @@ A web application that extracts structured data from PDF files using AI-powered 
 ## Features
 
 - Upload PDF files through a user-friendly interface
-- View PDFs directly in the browser with page navigation
+- View PDFs directly in the browser with page navigation and zoom controls
 - Configure custom fields to extract from PDFs
 - AI-powered text parsing and structured data extraction
-- Edit extracted data before use
-- Copy extracted data to clipboard as JSON
+- Edit extracted data before export
+- Export to CSV with metadata (filename, file size, parse time)
+- Process multiple PDFs in parallel
 - Real-time preview of extraction results
+- Secure API key storage in browser cookies
 
 ## Architecture
 
-- **Backend**: Python Flask API that interfaces with Landing AI APIs
-- **Frontend**: Next.js (React) with TypeScript and Tailwind CSS
+- **Frontend-only**: Next.js (React) with TypeScript and Tailwind CSS
+- **API Integration**: Direct calls to Landing AI APIs from the browser
 - **PDF Viewing**: react-pdf library
+- **Data Storage**: IndexedDB for field configurations
 
 ## Prerequisites
 
-- Python 3.8+
-- [uv](https://docs.astral.sh/uv/) - Fast Python package installer and resolver
 - Node.js 18+ (20.9+ recommended for Next.js)
 - npm
-- Landing AI API key
+- Landing AI API key (enter directly in the web interface)
 
 ## Setup Instructions
 
@@ -35,166 +36,137 @@ git clone <repository-url>
 cd waste_parser
 ```
 
-### 2. Backend Setup
-
-#### Install dependencies with uv
-
-If you don't have `uv` installed, install it first:
+### 2. Install dependencies
 
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
+make install
 ```
 
-Then install the Python dependencies:
-
-```bash
-uv sync
-```
-
-#### Configure environment variables
-
-Create a `.env` file in the root directory:
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and add your Landing AI API key:
-
-```
-LANDING_AI_API_KEY=your_actual_api_key_here
-FLASK_PORT=5000
-```
-
-#### Start the Flask backend
-
-```bash
-uv run python backend/app.py
-```
-
-The backend will run on `http://localhost:5000`
-
-### 3. Frontend Setup
-
-Open a new terminal window.
-
-#### Install Node.js dependencies
+Or manually:
 
 ```bash
 cd frontend
 npm install
 ```
 
-#### Start the Next.js development server
+### 3. Start the development server
 
 ```bash
+make dev
+```
+
+Or manually:
+
+```bash
+cd frontend
 npm run dev
 ```
 
-The frontend will run on `http://localhost:3000`
+The application will run on `http://localhost:3000`
 
 ## Usage
 
 1. Open your browser and navigate to `http://localhost:3000`
 
-2. **Configure Fields** (optional):
-   - Click "Field Configuration" to expand the section
+2. **Enter API Key** (first time only):
+   - You'll see an API key input at the top of the page
+   - Enter your Landing AI API key
+   - Click "Save" - the key will be stored in a browser cookie
+   - The key remains saved across sessions
+
+3. **Configure Fields** (optional):
+   - Click "Configure Fields" button
+   - Save/load field configurations by name
    - Modify existing fields or add new ones
    - Each field needs:
-     - **Name**: The field identifier (e.g., `invoice_number`)
-     - **Description**: What the AI should look for (e.g., "Invoice or receipt number")
-     - **Type**: Data type (string, number, or boolean)
+     - **Name**: The field identifier (e.g., `start date`)
+     - **Description**: What the AI should look for (e.g., "Start date of reporting period")
+     - **Type**: Data type (string or number)
 
-3. **Upload PDF**:
-   - Click "Choose File" and select a PDF document
-   - The PDF will display in the left panel
+4. **Upload PDFs**:
+   - Click "+ Add PDFs" to select one or more PDF files
+   - Or drag and drop PDFs onto the drop zone
+   - PDFs will display in a list with status indicators
+   - Click any PDF in the list to preview it
 
-4. **Extract Data**:
-   - Click "Parse & Extract Data"
+5. **Extract Data**:
+   - **Single file**: Select a PDF and click "Parse Selected"
+   - **Multiple files**: Click "Process All" to process all PDFs in parallel
    - The app will:
-     1. Parse the PDF into text using Landing AI
+     1. Parse each PDF into text using Landing AI
      2. Extract structured fields from the text
-   - Results appear in the right panel
+   - Status indicators show progress (○ pending, ⟳ processing, ✓ completed, ✗ error)
 
-5. **Edit Results**:
-   - Modify any extracted values directly in the input fields
-   - View the JSON preview at the bottom
+6. **Edit Results**:
+   - Click on any completed PDF to view its extracted data
+   - Modify values directly in the input fields
+   - Click "Undo Changes" to reset to original extracted values
 
-6. **Copy to Clipboard**:
-   - Click "Copy to Clipboard" to copy the JSON data
-   - Paste into your application or spreadsheet
-
-## API Endpoints
-
-### Backend (Flask)
-
-#### `GET /health`
-Health check endpoint.
-
-#### `POST /api/parse`
-Parse a PDF file into text.
-- **Input**: Multipart form data with `file` field (PDF)
-- **Output**: JSON with parsed text content
-
-#### `POST /api/extract`
-Extract structured data from text.
-- **Input**: JSON with `text` and `fields` array
-- **Output**: JSON with extracted field values
+7. **Export to CSV**:
+   - Click "Export to CSV" to download all completed extractions
+   - CSV includes metadata: filename, file size, parse timestamp, parse duration
+   - All configured fields are included as columns
 
 ## Project Structure
 
 ```
 waste_parser/
-├── backend/
-│   └── app.py              # Flask backend with API endpoints
 ├── frontend/
 │   ├── app/
-│   │   └── page.tsx        # Main application page
+│   │   └── page.tsx           # Main application page
 │   ├── components/
-│   │   ├── PDFViewer.tsx   # PDF display component
-│   │   ├── FieldConfig.tsx # Field configuration UI
-│   │   └── ResultsEditor.tsx # Results editing and clipboard copy
+│   │   ├── PDFViewer.tsx      # PDF display component with zoom
+│   │   ├── FieldConfig.tsx    # Field configuration UI
+│   │   ├── ResultsEditor.tsx  # Results editing UI
+│   │   └── ApiKeyInput.tsx    # API key input with cookie storage
+│   ├── lib/
+│   │   └── db.ts              # IndexedDB for configurations
 │   ├── package.json
 │   └── ...
-├── requirements.txt        # Python dependencies
-├── .env.example           # Environment variables template
+├── Makefile                   # Build and run commands
 ├── .gitignore
 └── README.md
 ```
 
 ## Landing AI APIs Used
 
+The application calls these APIs directly from the browser:
+
 ### Parse API
 - **URL**: `https://api.va.landing.ai/v1/ade/parse`
 - **Purpose**: Converts PDF files into structured text
-- **Method**: POST with file upload
+- **Model**: `dpt-2-latest`
+- **Authentication**: Bearer token (your API key)
 
 ### Extract API
 - **URL**: `https://api.va.landing.ai/v1/ade/extract`
 - **Purpose**: Extracts structured fields from text using AI
-- **Method**: POST with JSON payload
+- **Model**: `extract-latest`
+- **Authentication**: Bearer token (your API key)
 
 ## Troubleshooting
 
-### Backend Issues
+### API Key Issues
 
-- **"LANDING_AI_API_KEY not found"**: Make sure you've created the `.env` file with your API key
-- **CORS errors**: The Flask app has CORS enabled for all origins during development
-- **"Port 5000 is in use"**: This is commonly caused by macOS AirPlay Receiver. Either:
-  - Disable AirPlay Receiver: System Settings → General → AirDrop & Handoff → AirPlay Receiver (turn off)
-  - Or change the port: Edit `.env` and set `FLASK_PORT=5001` (or any other available port), then update the frontend API calls in `app/page.tsx` to match
+- **"Please set your Landing AI API key first"**: Click on the API key input at the top of the page and enter your key
+- **API key not persisting**: Check that your browser allows cookies. The key is stored in a cookie with 1-year expiration
+- **401 Unauthorized**: Your API key is invalid. Click "Change" to enter a new key
 
-### Frontend Issues
+### Application Issues
 
 - **PDF not displaying**: Check browser console for errors. The PDF.js worker is loaded from CDN
-- **"Failed to parse PDF"**: Ensure the backend is running on port 5000
+- **"Failed to parse PDF"**: Check the error message for details. Common causes:
+  - Invalid API key
+  - Network issues
+  - PDF file is corrupted or too large
+  - API rate limits exceeded
 - **Node version warning**: Next.js 16 requires Node.js 20.9+. The app should still work on Node 18 but upgrading is recommended
 
-### API Issues
+### Performance
 
-- **401 Unauthorized**: Check your Landing AI API key is correct
-- **Rate limiting**: You may be hitting API rate limits
-- **Parse/Extract failures**: Check the backend logs for detailed error messages
+- **Slow processing**: Large PDFs take longer to process. The Landing AI API processes them on their servers
+- **Processing multiple files**: Files are processed in parallel, but may be rate-limited by the API
+- **Browser tab freezing**: Processing happens asynchronously, but very large PDFs may cause temporary UI slowness
 
 ## Development
 
@@ -210,9 +182,22 @@ To add support for new field types (e.g., date, email):
 
 The app uses Tailwind CSS for styling. Modify the className attributes in the components to change the appearance.
 
-### Environment Variables
+### Security Considerations
 
-For production, consider using separate environment variables for frontend and backend, and implement proper API key validation and rate limiting.
+- **API Key Storage**: The API key is stored in a browser cookie with `SameSite=Strict` flag
+- **No Server Storage**: API keys never touch a server - they're only stored in the user's browser
+- **HTTPS in Production**: Always deploy with HTTPS to protect API keys in transit
+- **Rate Limiting**: The Landing AI API has its own rate limits - consider implementing client-side throttling for high-volume use
+
+### Building for Production
+
+```bash
+cd frontend
+npm run build
+npm start
+```
+
+For deployment, consider using Vercel, Netlify, or any static hosting service that supports Next.js.
 
 ## License
 

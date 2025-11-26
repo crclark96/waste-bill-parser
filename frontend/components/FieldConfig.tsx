@@ -23,9 +23,11 @@ interface FieldConfigProps {
   onClose: () => void;
   currentConfigName: string;
   setCurrentConfigName: (name: string) => void;
+  apiKey: string;
+  onApiKeyChange: (apiKey: string) => void;
 }
 
-export default function FieldConfig({ fields, setFields, isOpen, onClose, currentConfigName, setCurrentConfigName }: FieldConfigProps) {
+export default function FieldConfig({ fields, setFields, isOpen, onClose, currentConfigName, setCurrentConfigName, apiKey, onApiKeyChange }: FieldConfigProps) {
   const [newField, setNewField] = useState<FieldDefinition>({
     name: '',
     description: '',
@@ -35,11 +37,50 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
   const [savedConfigs, setSavedConfigs] = useState<FieldConfiguration[]>([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showLoadDialog, setShowLoadDialog] = useState(false);
+  const [localApiKey, setLocalApiKey] = useState(apiKey);
+  const [isApiKeyVisible, setIsApiKeyVisible] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadConfigurations();
+    // Load API key from cookie on mount
+    const savedKey = getCookie('landing_ai_api_key');
+    if (savedKey) {
+      setLocalApiKey(savedKey);
+    }
   }, []);
+
+  useEffect(() => {
+    setLocalApiKey(apiKey);
+  }, [apiKey]);
+
+  const getCookie = (name: string): string => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return parts.pop()?.split(';').shift() || '';
+    }
+    return '';
+  };
+
+  const setCookie = (name: string, value: string, days: number = 365) => {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+  };
+
+  const handleSaveApiKey = () => {
+    if (localApiKey.trim()) {
+      setCookie('landing_ai_api_key', localApiKey.trim());
+      onApiKeyChange(localApiKey.trim());
+    }
+  };
+
+  const handleClearApiKey = () => {
+    setLocalApiKey('');
+    setCookie('landing_ai_api_key', '', -1); // Delete cookie
+    onApiKeyChange('');
+  };
 
   // Close panel when clicking outside
   useEffect(() => {
@@ -147,7 +188,7 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
           {/* Header */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-xl font-bold text-black">Field Configuration</h2>
+              <h2 className="text-xl font-bold text-black">Waste Streams</h2>
               <button
                 onClick={onClose}
                 className="text-gray-500 hover:text-black text-2xl"
@@ -157,6 +198,46 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
             </div>
             <div className="text-sm text-gray-600">
               Current: <span className="font-semibold text-black">{currentConfigName}</span>
+            </div>
+          </div>
+
+          {/* API Key Section */}
+          <div className="mb-6 p-4 border border-gray-300 rounded bg-blue-50">
+            <h3 className="text-sm font-semibold text-black mb-3">Landing AI API Key</h3>
+            <div className="space-y-2">
+              <div className="relative">
+                <input
+                  type={isApiKeyVisible ? 'text' : 'password'}
+                  value={localApiKey}
+                  onChange={(e) => setLocalApiKey(e.target.value)}
+                  placeholder="Enter your Landing AI API key"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-black pr-16"
+                />
+                <button
+                  onClick={() => setIsApiKeyVisible(!isApiKeyVisible)}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-blue-600 hover:text-blue-700"
+                >
+                  {isApiKeyVisible ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSaveApiKey}
+                  disabled={!localApiKey.trim()}
+                  className="flex-1 bg-blue-600 text-white py-1.5 px-3 rounded text-sm hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  Save Key
+                </button>
+                <button
+                  onClick={handleClearApiKey}
+                  className="flex-1 bg-red-500 text-white py-1.5 px-3 rounded text-sm hover:bg-red-600"
+                >
+                  Clear Key
+                </button>
+              </div>
+              <p className="text-xs text-gray-700">
+                Your API key is stored securely in a browser cookie and never sent to any server except Landing AI.
+              </p>
             </div>
           </div>
 

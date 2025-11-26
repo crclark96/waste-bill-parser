@@ -24,10 +24,38 @@ export async function POST(request: NextRequest) {
       formData.append('model', body.model);
     }
 
-    // Append schema as JSON string
-    if (body.schema) {
-      formData.append('schema', JSON.stringify(body.schema));
-    }
+    // Build schema with hardcoded fields + user-defined fields
+    const hardcodedFields = {
+      'start date': {
+        type: 'string',
+        description: 'Start date of reporting period'
+      },
+      'end date': {
+        type: 'string',
+        description: 'End date of reporting period'
+      },
+      'total': {
+        type: 'number',
+        description: 'Total volume'
+      }
+    };
+
+    // Merge hardcoded fields with user-provided schema
+    const schema = {
+      type: 'object',
+      properties: {
+        ...hardcodedFields,
+        ...(body.schema?.properties || {})
+      },
+      required: [
+        'start date',
+        'end date',
+        'total',
+        ...(body.schema?.required || [])
+      ]
+    };
+
+    formData.append('schema', JSON.stringify(schema));
 
     const response = await fetch('https://api.va.landing.ai/v1/ade/extract', {
       method: 'POST',

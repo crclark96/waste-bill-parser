@@ -35,8 +35,8 @@ export default function PDFViewer({ pdfUrl, scale, setScale, pageNumber, setPage
     console.error('PDF load error:', error);
   }
 
-  const zoomIn = () => setScale(prev => Math.min(prev + 0.25, 3.0));
-  const zoomOut = () => setScale(prev => Math.max(prev - 0.25, 0.5));
+  const zoomIn = () => setScale(Math.min(scale + 0.25, 3.0));
+  const zoomOut = () => setScale(Math.max(scale - 0.25, 0.5));
   const resetZoom = () => setScale(1.0);
 
   return (
@@ -95,7 +95,7 @@ export default function PDFViewer({ pdfUrl, scale, setScale, pageNumber, setPage
       {numPages > 0 && (
         <div className="flex items-center gap-4">
           <button
-            onClick={() => setPageNumber((prev) => Math.max(prev - 1, 1))}
+            onClick={() => setPageNumber(Math.max(pageNumber - 1, 1))}
             disabled={pageNumber <= 1}
             className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
@@ -105,7 +105,7 @@ export default function PDFViewer({ pdfUrl, scale, setScale, pageNumber, setPage
             Page {pageNumber} of {numPages}
           </span>
           <button
-            onClick={() => setPageNumber((prev) => Math.min(prev + 1, numPages))}
+            onClick={() => setPageNumber(Math.min(pageNumber + 1, numPages))}
             disabled={pageNumber >= numPages}
             className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
