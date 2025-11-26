@@ -9,6 +9,7 @@ import {
   markConfigurationAsUsed,
   FieldConfiguration,
 } from '@/lib/db';
+import { getCookie, setCookie } from '@/lib/utils';
 
 interface FieldDefinition {
   name: string;
@@ -53,21 +54,6 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
   useEffect(() => {
     setLocalApiKey(apiKey);
   }, [apiKey]);
-
-  const getCookie = (name: string): string => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) {
-      return parts.pop()?.split(';').shift() || '';
-    }
-    return '';
-  };
-
-  const setCookie = (name: string, value: string, days: number = 365) => {
-    const expires = new Date();
-    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
-  };
 
   const handleSaveApiKey = () => {
     if (localApiKey.trim()) {

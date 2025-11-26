@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { HARDCODED_FIELDS } from '@/lib/constants';
+
+interface ExtractRequestBody {
+  markdown: string;
+  model?: string;
+  schema?: {
+    properties: Record<string, any>;
+    required: string[];
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await request.json() as ExtractRequestBody;
     const apiKey = request.headers.get('x-api-key');
 
     if (!apiKey) {
@@ -25,32 +35,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Build schema with hardcoded fields + user-defined fields
-    const hardcodedFields = {
-      'start date': {
-        type: 'string',
-        description: 'Start date of reporting period'
-      },
-      'end date': {
-        type: 'string',
-        description: 'End date of reporting period'
-      },
-      'total': {
-        type: 'number',
-        description: 'Total volume'
-      }
-    };
+    const hardcodedFieldProperties = HARDCODED_FIELDS.reduce((acc, field) => {
+      acc[field.name] = {
+        type: field.type,
+        description: field.description
+      };
+      return acc;
+    }, {} as Record<string, any>);
+
+    const hardcodedFieldNames = HARDCODED_FIELDS.map(f => f.name);
 
     // Merge hardcoded fields with user-provided schema
     const schema = {
       type: 'object',
       properties: {
-        ...hardcodedFields,
+        ...hardcodedFieldProperties,
         ...(body.schema?.properties || {})
       },
       required: [
-        'start date',
-        'end date',
-        'total',
+        ...hardcodedFieldNames,
         ...(body.schema?.required || [])
       ]
     };

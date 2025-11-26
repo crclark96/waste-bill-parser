@@ -5,6 +5,8 @@ import dynamic from 'next/dynamic';
 import FieldConfig from '@/components/FieldConfig';
 import ResultsEditor from '@/components/ResultsEditor';
 import { getAllConfigurations } from '@/lib/db';
+import { HARDCODED_FIELDS, HARDCODED_FIELD_NAMES, DEFAULT_STREAM_FIELDS } from '@/lib/constants';
+import { getCookie, escapeCSV, getCSVValue } from '@/lib/utils';
 
 const PDFViewer = dynamic(() => import('@/components/PDFViewer'), {
   ssr: false,
@@ -30,22 +32,11 @@ interface PDFResult {
   parseDuration?: number;
 }
 
-// Hardcoded fields that are always extracted
-const HARDCODED_FIELDS: FieldDefinition[] = [
-  { name: 'start date', description: 'Start date of reporting period', type: 'string' },
-  { name: 'end date', description: 'End date of reporting period', type: 'string' },
-  { name: 'total', description: 'Total volume', type: 'number' },
-];
-
 export default function Home() {
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
   const [selectedFileIndex, setSelectedFileIndex] = useState<number | null>(null);
   const [results, setResults] = useState<PDFResult[]>([]);
-  const [fields, setFields] = useState<FieldDefinition[]>([
-    { name: 'recycle', description: 'Total volume of all recycling streams', type: 'number' },
-    { name: 'compost', description: 'Total volume of all compost streams', type: 'number' },
-    { name: 'trash', description: 'Total volume of all trash streams', type: 'number' },
-  ]);
+  const [fields, setFields] = useState<FieldDefinition[]>([...DEFAULT_STREAM_FIELDS]);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState<string>('');
   const [processingAll, setProcessingAll] = useState(false);
@@ -80,15 +71,6 @@ export default function Home() {
     };
 
     const loadApiKey = () => {
-      const getCookie = (name: string): string => {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) {
-          return parts.pop()?.split(';').shift() || '';
-        }
-        return '';
-      };
-
       const savedKey = getCookie('landing_ai_api_key');
       if (savedKey) {
         setApiKey(savedKey);
@@ -339,17 +321,6 @@ export default function Home() {
       return;
     }
 
-    // Helper function to escape CSV values
-    const escapeCSV = (value: string) => {
-      if (value.includes(',') || value.includes('"') || value.includes('\n') || value.includes(' ')) {
-        return `"${value.replace(/"/g, '""')}"`;
-      }
-      return value;
-    };
-
-    // Get hardcoded field names
-    const hardcodedFieldNames = HARDCODED_FIELDS.map(f => f.name);
-
     // Build CSV headers: metadata fields, start/end date, stream, quantity, total
     const headers = [
       'filename',
@@ -368,7 +339,7 @@ export default function Home() {
     completedResults.forEach(result => {
       // Get user-defined fields (non-hardcoded fields)
       const streamFields = Object.keys(result.extractedData).filter(
-        fieldName => !hardcodedFieldNames.includes(fieldName)
+        fieldName => !HARDCODED_FIELD_NAMES.includes(fieldName as any)
       );
 
       // Create a row for each stream
@@ -378,30 +349,11 @@ export default function Home() {
           result.file.size.toString(),
           result.parseEndTime ? new Date(result.parseEndTime).toISOString() : '',
           result.parseDuration?.toString() || '',
-          // Add start date and end date
-          (() => {
-            const value = result.extractedData['start date'];
-            if (value === undefined || value === null) return '';
-            return escapeCSV(String(value));
-          })(),
-          (() => {
-            const value = result.extractedData['end date'];
-            if (value === undefined || value === null) return '';
-            return escapeCSV(String(value));
-          })(),
-          // Add stream name and quantity
+          getCSVValue(result.extractedData, 'start date'),
+          getCSVValue(result.extractedData, 'end date'),
           escapeCSV(streamName),
-          (() => {
-            const value = result.extractedData[streamName];
-            if (value === undefined || value === null) return '';
-            return escapeCSV(String(value));
-          })(),
-          // Add total at the end
-          (() => {
-            const value = result.extractedData['total'];
-            if (value === undefined || value === null) return '';
-            return escapeCSV(String(value));
-          })()
+          getCSVValue(result.extractedData, streamName),
+          getCSVValue(result.extractedData, 'total')
         ];
         rows.push(row.join(','));
       });
