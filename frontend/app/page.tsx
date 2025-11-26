@@ -347,48 +347,64 @@ export default function Home() {
       return value;
     };
 
-    // Get all unique field names from extracted data across all results
-    const allFieldNames = new Set<string>();
-    completedResults.forEach(result => {
-      Object.keys(result.extractedData).forEach(key => allFieldNames.add(key));
-    });
-
-    // Sort fields: hardcoded fields first, then alphabetically
+    // Get hardcoded field names
     const hardcodedFieldNames = HARDCODED_FIELDS.map(f => f.name);
-    const sortedFieldNames = Array.from(allFieldNames).sort((a, b) => {
-      const aIsHardcoded = hardcodedFieldNames.includes(a);
-      const bIsHardcoded = hardcodedFieldNames.includes(b);
 
-      if (aIsHardcoded && !bIsHardcoded) return -1;
-      if (!aIsHardcoded && bIsHardcoded) return 1;
-      return a.localeCompare(b);
-    });
-
-    // Build CSV headers: filename, file_size, parsed_at, parse_duration_ms, all extracted fields
+    // Build CSV headers: metadata fields, start/end date, stream, quantity, total
     const headers = [
       'filename',
       'file_size_bytes',
       'parsed_at',
       'parse_duration_ms',
-      ...sortedFieldNames.map(f => escapeCSV(f))
+      'start date',
+      'end date',
+      'stream',
+      'quantity',
+      'total'
     ];
 
-    // Build CSV rows
-    const rows = completedResults.map(result => {
-      const row: string[] = [
-        escapeCSV(result.file.name),
-        result.file.size.toString(),
-        result.parseEndTime ? new Date(result.parseEndTime).toISOString() : '',
-        result.parseDuration?.toString() || '',
-        // Add all extracted fields in the same order as headers
-        ...sortedFieldNames.map(fieldName => {
-          const value = result.extractedData[fieldName];
-          if (value === undefined || value === null) return '';
-          const stringValue = String(value);
-          return escapeCSV(stringValue);
-        })
-      ];
-      return row.join(',');
+    // Build CSV rows - one row per waste stream per file
+    const rows: string[] = [];
+    completedResults.forEach(result => {
+      // Get user-defined fields (non-hardcoded fields)
+      const streamFields = Object.keys(result.extractedData).filter(
+        fieldName => !hardcodedFieldNames.includes(fieldName)
+      );
+
+      // Create a row for each stream
+      streamFields.forEach(streamName => {
+        const row: string[] = [
+          escapeCSV(result.file.name),
+          result.file.size.toString(),
+          result.parseEndTime ? new Date(result.parseEndTime).toISOString() : '',
+          result.parseDuration?.toString() || '',
+          // Add start date and end date
+          (() => {
+            const value = result.extractedData['start date'];
+            if (value === undefined || value === null) return '';
+            return escapeCSV(String(value));
+          })(),
+          (() => {
+            const value = result.extractedData['end date'];
+            if (value === undefined || value === null) return '';
+            return escapeCSV(String(value));
+          })(),
+          // Add stream name and quantity
+          escapeCSV(streamName),
+          (() => {
+            const value = result.extractedData[streamName];
+            if (value === undefined || value === null) return '';
+            return escapeCSV(String(value));
+          })(),
+          // Add total at the end
+          (() => {
+            const value = result.extractedData['total'];
+            if (value === undefined || value === null) return '';
+            return escapeCSV(String(value));
+          })()
+        ];
+        rows.push(row.join(','));
+      });
     });
 
     // Combine headers and rows
