@@ -21,6 +21,7 @@
   --color-brand-light-gray: #a3aeba;
   --color-brand-lighter-gray: #d0d7da;
   --color-brand-lightest-gray: #f3f3f3;
+  --color-brand-red: #c44536;
 }
 
 @media (prefers-color-scheme: dark) {

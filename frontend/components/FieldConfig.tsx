@@ -188,8 +188,8 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
           </div>
 
           {/* API Key Section */}
-          <div className="mb-6 p-4 border border-gray-300 rounded bg-blue-50">
-            <h3 className="text-sm font-semibold text-black mb-3">Landing AI API Key</h3>
+          <div className="mb-6 p-4 border border-brand-lighter-gray rounded bg-blue-50">
+            <h3 className="text-sm font-semibold text-brand-navy mb-3">Landing AI API Key</h3>
             <div className="space-y-2">
               <div className="relative">
                 <input
@@ -197,11 +197,11 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
                   value={localApiKey}
                   onChange={(e) => setLocalApiKey(e.target.value)}
                   placeholder="Enter your Landing AI API key"
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-black pr-16"
+                  className="w-full px-3 py-2 text-sm border border-brand-lighter-gray rounded focus:outline-none focus:ring-2 focus:ring-brand-light-blue text-brand-dark-gray pr-16"
                 />
                 <button
                   onClick={() => setIsApiKeyVisible(!isApiKeyVisible)}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-blue-600 hover:text-blue-700"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-brand-light-blue hover:opacity-80"
                 >
                   {isApiKeyVisible ? 'Hide' : 'Show'}
                 </button>
@@ -210,13 +210,13 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
                 <button
                   onClick={handleSaveApiKey}
                   disabled={!localApiKey.trim()}
-                  className="flex-1 bg-blue-600 text-white py-1.5 px-3 rounded text-sm hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="flex-1 bg-brand-light-blue text-white py-1.5 px-3 rounded text-sm hover:opacity-90 disabled:bg-brand-light-gray disabled:cursor-not-allowed"
                 >
                   Save Key
                 </button>
                 <button
                   onClick={handleClearApiKey}
-                  className="flex-1 bg-red-500 text-white py-1.5 px-3 rounded text-sm hover:bg-red-600"
+                  className="flex-1 bg-brand-red text-white py-1.5 px-3 rounded text-sm hover:opacity-90"
                 >
                   Clear Key
                 </button>
@@ -231,13 +231,13 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
           <div className="flex gap-2 mb-6">
             <button
               onClick={() => setShowSaveDialog(true)}
-              className="flex-1 bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 text-sm"
+              className="flex-1 bg-brand-orange text-white py-2 px-4 rounded hover:opacity-90 text-sm"
             >
               Save Config
             </button>
             <button
               onClick={() => setShowLoadDialog(true)}
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 text-sm"
+              className="flex-1 bg-brand-navy text-white py-2 px-4 rounded hover:opacity-90 text-sm"
             >
               Load Config
             </button>
@@ -245,19 +245,19 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
 
           {/* Save Dialog */}
           {showSaveDialog && (
-            <div className="mb-6 p-4 border border-gray-300 rounded bg-gray-50">
-              <h3 className="text-sm font-semibold text-black mb-2">Save Configuration</h3>
+            <div className="mb-6 p-4 border border-brand-lighter-gray rounded bg-brand-lightest-gray">
+              <h3 className="text-sm font-semibold text-brand-navy mb-2">Save Configuration</h3>
               <input
                 type="text"
                 value={configName}
                 onChange={(e) => setConfigName(e.target.value)}
                 placeholder="Configuration name"
-                className="w-full px-3 py-2 text-black border border-gray-300 rounded mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-brand-dark-gray border border-brand-lighter-gray rounded mb-2 focus:outline-none focus:ring-2 focus:ring-brand-light-blue"
               />
               <div className="flex gap-2">
                 <button
                   onClick={handleSaveConfig}
-                  className="flex-1 bg-green-600 text-white py-1 px-3 rounded hover:bg-green-700 text-sm"
+                  className="flex-1 bg-brand-blue text-white py-1 px-3 rounded hover:opacity-90 text-sm"
                 >
                   Save
                 </button>
@@ -266,7 +266,7 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
                     setShowSaveDialog(false);
                     setConfigName('');
                   }}
-                  className="flex-1 bg-gray-400 text-white py-1 px-3 rounded hover:bg-gray-500 text-sm"
+                  className="flex-1 bg-brand-light-gray text-white py-1 px-3 rounded hover:opacity-90 text-sm"
                 >
                   Cancel
                 </button>
@@ -276,10 +276,10 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
 
           {/* Load Dialog */}
           {showLoadDialog && (
-            <div className="mb-6 p-4 border border-gray-300 rounded bg-gray-50 max-h-60 overflow-y-auto">
-              <h3 className="text-sm font-semibold text-black mb-2">Load Configuration</h3>
+            <div className="mb-6 p-4 border border-brand-lighter-gray rounded bg-brand-lightest-gray max-h-60 overflow-y-auto">
+              <h3 className="text-sm font-semibold text-brand-navy mb-2">Load Configuration</h3>
               {savedConfigs.length === 0 ? (
-                <p className="text-sm text-black">No saved configurations</p>
+                <p className="text-sm text-brand-gray">No saved configurations</p>
               ) : (
                 <div className="space-y-2">
                   {savedConfigs.map((config) => (
@@ -289,7 +289,7 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
                     >
                       <button
                         onClick={() => handleLoadConfig(config)}
-                        className="flex-1 text-left text-sm text-black hover:text-blue-600"
+                        className="flex-1 text-left text-sm text-brand-dark-gray hover:text-brand-light-blue"
                       >
                         {config.name}
                       </button>
@@ -305,7 +305,7 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
               )}
               <button
                 onClick={() => setShowLoadDialog(false)}
-                className="w-full mt-3 bg-gray-400 text-white py-1 px-3 rounded hover:bg-gray-500 text-sm"
+                className="w-full mt-3 bg-brand-light-gray text-white py-1 px-3 rounded hover:opacity-90 text-sm"
               >
                 Close
               </button>
@@ -320,7 +320,7 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
           {/* Existing Fields */}
           <div className="space-y-3 mb-6">
             {fields.map((field, index) => (
-              <div key={index} className="border border-gray-200 p-3 rounded bg-gray-50">
+              <div key={index} className="border border-brand-lighter-gray p-3 rounded bg-brand-lightest-gray">
                 <div className="space-y-2">
                   <div>
                     <label className="block text-xs font-medium text-black mb-1">
@@ -365,13 +365,13 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
                   <div className="flex gap-2 pt-2">
                     <button
                       onClick={() => handleDuplicateField(index)}
-                      className="flex-1 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                      className="flex-1 px-2 py-1 text-xs bg-brand-blue text-white rounded hover:opacity-90"
                     >
                       Duplicate
                     </button>
                     <button
                       onClick={() => handleRemoveField(index)}
-                      className="flex-1 px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                      className="flex-1 px-2 py-1 text-xs bg-brand-red text-white rounded hover:opacity-90"
                     >
                       Remove
                     </button>
@@ -383,7 +383,7 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
 
           {/* Add New Field */}
           <div className="border-t border-gray-200 pt-4">
-            <h3 className="text-sm font-semibold text-black mb-3">Add New Field</h3>
+            <h3 className="text-sm font-semibold text-brand-navy mb-3">Add New Field</h3>
             <div className="space-y-2">
               <div>
                 <label className="block text-xs font-medium text-black mb-1">
@@ -424,7 +424,7 @@ export default function FieldConfig({ fields, setFields, isOpen, onClose, curren
               <button
                 onClick={handleAddField}
                 disabled={!newField.name || !newField.description}
-                className="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 text-sm bg-brand-light-blue text-white rounded hover:opacity-90 disabled:bg-brand-light-gray disabled:cursor-not-allowed"
               >
                 Add Field
               </button>
